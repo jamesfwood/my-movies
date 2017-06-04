@@ -1,0 +1,6 @@
+old/
+node_modules/
+bundle.js
+.env
+*.pyc
+*.pyo
