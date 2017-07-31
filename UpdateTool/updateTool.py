@@ -1,5 +1,5 @@
 import os
-from MediaInfoDLL3 import MediaInfo, Stream
+from MediaInfoDLL import MediaInfo, Stream
 import boto3
 from boto3.dynamodb.conditions import Key, Attr
 from datetime import datetime
@@ -8,8 +8,12 @@ import MovieFilename as movieFilename
 from botocore.exceptions import ClientError
 import xmltodict
 from time import sleep
+from imdb import IMDb
+from decimal import Decimal
 
 tmdb.API_KEY = os.environ['TMDB_API_KEY']
+
+ia = IMDb()
 
 # TODO
 # Change database key to UUID??
@@ -30,20 +34,70 @@ def findFileNotWatchedInDb(items, str):
     return False
 
 
-def addToDb(table, filename, duration, mediaInfoXML, ids):
+def getImdbDetails(imdb):
+    details = { 'id': imdb.movieID, 'title': imdb['title'], 'year': imdb['year'], 'votes': imdb['votes'] }
+
+    try:
+        mpaa = imdb['mpaa']
+        mpaa_arr = mpaa.split(" ", 2)
+
+        if len(mpaa_arr) > 2:
+            details['mpaa_rating'] = mpaa_arr[1]
+
+        details['mpaa'] = mpaa
+    except:
+        pass
+
+    details['full_size_cover_url'] = imdb['full-size cover url']
+    details['rating'] = Decimal(repr(imdb['rating']))
+
+    details['genres'] = []
+    for genre in imdb['genres']:
+        details['genres'].append(genre)
+
+    details['directors'] = []
+    for director in imdb['director']:
+        details['directors'].append(director['name'])
+
+    details['writers'] = []
+    for writer in imdb['writer']:
+        details['writers'].append(writer['name'])
+
+    return details
+
+
+def addToDb(table, filename, duration, mediaInfoXML, tmdbDetails):
     date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
     try:
         mediaInfo = xmltodict.parse(mediaInfoXML)
 
-        if ids['tmdb_id'] != -1:
+        if tmdbDetails is not None:
+
+            imdb = ia.get_movie(tmdbDetails.imdb_id[2:])
+
+            imdbDetails = getImdbDetails(imdb)
+            dictTmdb = tmdbDetails.__dict__
+            dictTmdb['popularity'] = Decimal(repr(dictTmdb['popularity']))
+            dictTmdb['vote_average'] = Decimal(repr(dictTmdb['vote_average']))
+
+            for k, v in dictTmdb.items():
+                if v == '':
+                    del dictTmdb[k]
+
             table.put_item(
                 Item = {
                     'userId': 'jamesfwood@hotmail.com',
                     'filename': filename,
+          #          'title': imdb['title'],
+          #          'mpaa': imdb['mpaa'],
+           #         'year': imdb['year'],
+                    'imdb': imdbDetails,
                     'duration': duration,
-                    'imdb_id': ids['imdb_id'],
-                    'tmdb_id': ids['tmdb_id'],
+                    'tmdb': dictTmdb,
+           #         'imdb_id': ids['imdb_id'],
+            #        'tmdb_id': ids['tmdb_id'],
+            #        'cover_url': imdb['full-size cover url'],
                     'watched': False,
                     'mediaInfo': mediaInfo,
                     "created": date,
@@ -82,15 +136,21 @@ def convertMillis(millis):
 
 def findBestMatch(search_results, duration):
     
-    result = { 'imdb_id': -1, 'tmdb_id': -1 }
+    #result = { 'imdb_id': -1, 'tmdb_id': -1 }
+    #result = {}
+
     #id = -1
     if len(search_results) == 1:
         for s in search_results:
             movie = tmdb.Movies(s['id'])
             response = movie.info()
 
-            result['tmdb_id'] = movie.id
-            result['imdb_id'] = movie.imdb_id
+            #result['tmdb'] = movie
+
+            return movie
+
+         #   result['tmdb_id'] = movie.id
+          #  result['imdb_id'] = movie.imdb_id
             #id = s['id']
     else:
         try:
@@ -125,18 +185,19 @@ def findBestMatch(search_results, duration):
                 movie = tmdb.Movies(search_results[bestIndex]['id'])
                 response = movie.info()
 
-                result['tmdb_id'] = movie.id
-                result['imdb_id'] = movie.imdb_id
+                #result['tmdb_id'] = movie.id
+                #result['imdb_id'] = movie.imdb_id
+                return movie
 
         except Exception as e:
             print("Unexpected error in findBestMatch", e)
             print("search_results", search_results)
             print("duration", duration)
             #id = -1
-            result['tmdb_id'] = -1
-            result['imdb_id'] = -1
+            #result['tmdb_id'] = -1
+            #result['imdb_id'] = -1
 
-    return result
+    return None
 
 def updateMovieWatched(filename):
 
@@ -170,6 +231,7 @@ def updateWatched(dir):
             except Exception as e:
                 print("Unexpected error:", e)
 
+
 def loadMovies(dir):
 
     # traverse root directory, and list directories as dirs and files as files
@@ -178,11 +240,13 @@ def loadMovies(dir):
         for file in files:
             try:
                 filename = os.path.join(root, file)
+
                 print("Processing file: " + filename)
 
                 if findFileInDb(items, file) == False:
 
                     mediaInfo.Open(filename)
+
                     duration_string = mediaInfo.Get(Stream.Video, 0, "Duration")
 
                     if duration_string != '':
@@ -196,18 +260,21 @@ def loadMovies(dir):
 
                             if duration > 900000:
                                 con_hour, con_min, con_sec = convertMillis(duration)
+
                                 print("{0}h {1}min {2}sec".format(con_hour, con_min, con_sec))
 
                                 titleDict = movieFilename.parse(file)
 
-                                ids = { 'imdb_id': -1, 'tmdb_id': -1 }
+                                #ids = { 'imdb_id': -1, 'tmdb_id': -1 }
+                                tmdbDetails = None
                                 if titleDict['Title'] != '' and titleDict['Index'] != -1:
                                     search = tmdb.Search()
                                     movie = search.movie(query=titleDict['Title'], year=titleDict['Year'], include_adult=False)
-                                    ids = findBestMatch(search.results, duration)
+                                    tmdbDetails = findBestMatch(search.results, duration)
 
                                 mediaInfo.Option("Inform", "XML")
-                                addToDb(table, file, duration, mediaInfo.Inform(), ids)
+
+                                addToDb(table, file, duration, mediaInfo.Inform(), tmdbDetails)
 
                                 # Delay to not overload TheMovieDb API
                                 sleep(5)
@@ -261,10 +328,12 @@ if __name__ == '__main__':
 
     loadMovies('F:\\Media Library\\Movies\\New')
     loadMovies('G:\\Media Library\\Movies\\New')
+    loadMovies('H:\\Media Library\\Movies\\New')
 
     print("Done loading movies!!")
 
     updateWatched('F:\\Media Library\\Movies\\New\\_Done')
     updateWatched('G:\\Media Library\\Movies\\New\\_Done')
+    updateWatched('H:\\Media Library\\Movies\\New\\_Done')
 
     print("Done updating watched movies!!")

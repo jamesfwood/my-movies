@@ -2,11 +2,9 @@
 import React from 'react';
 var {connect} = require('react-redux');
 //import { withRouter } from 'react-router-dom'
-var actions = require('actions');
+var actions = require('app/actions/');
 
 //import theMovieDb from 'themoviedb-javascript-library'
-
-import omdbApi from 'app/api/omdbApi.jsx'
 
 function convertMillis(millis) {
 
@@ -34,11 +32,11 @@ export class MovieTile extends React.Component {
 */
     componentDidMount() {
 
-//debugger;
-        var {poster, filename, dispatch} = this.props;
+
+     //   var {poster, filename, dispatch} = this.props;
  //       console.log("MovieTile Width", props.width);
 
-        if (!poster && this.props.imdb_id) {
+   /*     if (!poster && this.props.imdb_id) {
 
             var lsMovie = localStorage.getItem('movie-' + this.props.imdb_id);
 
@@ -46,7 +44,7 @@ export class MovieTile extends React.Component {
                 try {
                     var result = JSON.parse(lsMovie);
 
-                    dispatch(actions.updateMovie(filename, result));
+      //              dispatch(actions.updateMovie(filename, result));
                 }
                 catch (e) {
                 }
@@ -55,18 +53,7 @@ export class MovieTile extends React.Component {
          //       var self = this;
                 var movie = this.props;
         
-                omdbApi.getMovie(movie.imdb_id).then( (res) => {
-
-                    localStorage.setItem('movie-' + movie.imdb_id, JSON.stringify(res));
-
-                    dispatch(actions.updateMovie(filename, res));
-
-                }).catch( (e) => {
-                    console.log("Error omdbApi:getMovie", e);
-                });
-
-
-
+                
                     /*
 
                 theMovieDb.movies.getById({"id": movie.themoviedb_id }, (res) => {
@@ -82,29 +69,42 @@ export class MovieTile extends React.Component {
                     console.log("Error theMovieDb getById", e);
                 });
                 */
-            }
+     //       }
 
-        }
+      //  }
     }
 
     render() {
         var movie = this.props;
 
-        if (movie.poster) {
+        if (movie.imdb) {
         
             var runtime = convertMillis(movie.duration);
+            var mpaa = "Not Rated";
 
-            var d = new Date(movie.imdb_details.Released);
+            if (movie.imdb.mpaa_rating) {
+                mpaa = movie.imdb.mpaa_rating
+            }
 
-            var year = d.getFullYear();
+            let genre = "";
+
+            for (var i = 0; i < movie.imdb.genres.length && i <= 2; i++) {
+                genre += movie.imdb.genres[i] + ', '
+            }
+            
+            genre = genre.slice(0, -2);
+
+            //TODO: ADD Genre <figcaption className="figure-caption">{movie.imdb_details.Genre}</figcaption>
+
+            let poster = 'https://image.tmdb.org/t/p/w342' + movie.tmdb.poster_path;
 
             return (
                 <div className="m-1 p-2 movie">
                     <figure className="figure">
-                        <img src={movie.poster} alt="boohoo" width='300'/>
-                        <figcaption className="figure-caption">{movie.title} ({year})</figcaption>
-                        <figcaption className="figure-caption font-italic">{movie.imdb_details.Rated} | {runtime}</figcaption>
-                        <figcaption className="figure-caption">{movie.imdb_details.Genre}</figcaption>
+                        <img src={poster} alt="boohoo" width='217'/>
+                        <figcaption className="figure-caption">{movie.imdb.title} ({movie.imdb.year})</figcaption>
+                        <figcaption className="figure-caption font-italic">{mpaa} | {runtime} | {movie.imdb.rating}</figcaption>
+                        <figcaption className="figure-caption font-italic">{genre}</figcaption>
                     </figure>
                 </div>
             )

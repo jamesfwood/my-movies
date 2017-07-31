@@ -1,22 +1,18 @@
 import React from 'react'
-//import { BrowserRouter as Router, Route, Link } from 'react-router-dom'
 import ReactDOM from 'react-dom'
 import { Provider } from 'react-redux';
 
 import { store } from 'app/store/'
-//import { router } from "./router.js";
 import { router } from 'app/router/'
 
-var actions = require('actions');
-//var store = require('configureStore').configure();
+var actions = require('app/actions/');
 
-//import Movies from 'Movies'
-//import Navigation from 'Navigation'
-
-import MoviesApi from 'MoviesApi'
+import MoviesApi from 'app/api/moviesApi'
 
 // App css
 //import styles from "applicationStyles;
+
+//import styles from 'https://www.w3schools.com/w3css/4/w3.css'
 
 store.subscribe( () => {
 
@@ -24,10 +20,11 @@ store.subscribe( () => {
 
   console.log("Changed state", state);
   
-  if (state.form && state.form.simple && state.form.simple.submitSucceeded) {
+ /* if (state.form && state.form.simple && state.form.simple.submitSucceeded) {
 
     console.log("Update filter title", );
-  }
+  }*/
+  
 });
 
 MoviesApi.getList().then(function(list) {

@@ -3,8 +3,8 @@ import React from 'react';
 var {connect} = require('react-redux');
 //import { withRouter } from 'react-router-dom'
 
-import NewMovieTile from 'NewMovieTile'
-import MoviesApi from 'MoviesApi'
+import NewMovieTile from 'app/components/NewMovieTile'
+import MoviesApi from 'app/api/moviesApi'
 
 export class NewMovies extends React.Component {
 
@@ -15,7 +15,7 @@ export class NewMovies extends React.Component {
         var filteredList = movies;
 
         filteredList = filteredList.filter( (movie) => {
-              return !movie.tmdb_id;
+              return !movie.tmdb;
             });
 
   /*      var newList = [];

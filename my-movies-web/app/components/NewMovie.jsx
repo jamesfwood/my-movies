@@ -3,7 +3,8 @@ import theMovieDb from 'themoviedb-javascript-library'
 var {connect} = require('react-redux');
 //import { withRouter } from 'react-router-dom'
 
-import MoviesApi from 'MoviesApi'
+import MoviesApi from 'app/api/moviesApi'
+var actions = require('app/actions/');
 
 // Find "space" character
 function getSpace(str) {
@@ -151,6 +152,7 @@ export class NewMovie extends React.Component {
         alert("Not yet implemented");
   }
 
+
   handleAcceptClick(tmdb_id) {
       
         var self = this;
@@ -158,37 +160,52 @@ export class NewMovie extends React.Component {
 
         theMovieDb.movies.getById({"id": tmdb_id }, (res) => {
 
-            var result = JSON.parse(res);
-            console.log("Called theMovieDb.movies.getById", result);
+            var tmdb = JSON.parse(res);
+            console.log("Called theMovieDb.movies.getById", tmdb);
         
            // localStorage.setItem('movie-' + movie.themoviedb_id, JSON.stringify(result));
 
-            //dispatch(actions.updateMovie(filename, result));
+            var imdb_id = tmdb.imdb_id.substring(2);
 
-            MoviesApi.updateTheMovieDbIDs(self.state.movie.filename, result.imdb_id, tmdb_id).then( movie => {
+            MoviesApi.getImdb(imdb_id).then( movie => {
 
-                self.setState( (prevState, props) => {
+                var imdb = JSON.parse(movie[0]);
 
-                    var newMovie = prevState.movie;
 
-                    newMovie.imdb_id = movie.imdb_id;
-                    newMovie.tmdb_id = movie.tmdb_id;
+                //
 
-                    return {
-                        movie: newMovie
-                    }
-                });
-/*
-                this.setState( (prevState, props) => {
+                MoviesApi.updateTheMovieDbIDs(self.state.movie.filename, imdb, tmdb).then( movie => {
 
-                        return { movie: prevState.movie, typed };
+                    var {dispatch} = self.props;
+                    dispatch(actions.updateMovie(self.state.movie.filename, imdb, tmdb));
+
+                    self.setState( (prevState, props) => {
+
+                        var newMovie = Object.assign({}, prevState.movie);
+
+                        newMovie.imdb = movie.imdb;
+                        newMovie.tmdb = movie.tmdb;
+
+                        return {
+                            movie: newMovie
+                        }
                     });
-*/
-            }).catch ( e => {
+                    
+    /*
+                    this.setState( (prevState, props) => {
 
-                console.log("error updating movie", e);
+                            return { movie: prevState.movie, typed };
+                        });
+
+            */
+                }).catch ( e => {
+
+                    console.log("error updating movie", e);
+                });
+
             });
 
+            
         }, (e) => {
             console.log("Error theMovieDb getById", e);
         });
@@ -214,13 +231,13 @@ export class NewMovie extends React.Component {
         }
       }
 
-       if (this.state.movie.tmdb_id) {
+       if (this.state.movie.tmdb) {
            return (
                <div>
                 <h3>{this.state.movie.filename}</h3>
                 <p>Duration: {convertMillis(this.state.movie.duration)}</p>
-                <p>The Movie DB ID is now: {this.state.movie.tmdb_id}</p>
-                <p>IMDB ID is now: {this.state.movie.imdb_id}</p>
+                <p>The Movie DB ID is now: {this.state.movie.tmdb.id}</p>
+                <p>IMDB ID is now: {this.state.movie.imdb.id}</p>
                 </div>
            )
        }

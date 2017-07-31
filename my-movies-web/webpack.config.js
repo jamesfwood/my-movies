@@ -6,8 +6,6 @@ var IS_DEV = true; //(process.env.NODE_ENV === 'dev');
 var dirApp = path.join(__dirname, 'app');
 //var dirAssets = path.join(__dirname, 'assets');
 
-console.log("api key = " + process.env.TMDB_API_KEY);
-
 module.exports = {
   entry: [
     'script-loader!jquery/dist/jquery.min.js',
@@ -52,20 +50,8 @@ module.exports = {
     modules: [__dirname, 'node_modules'],
     alias: {
       app: 'app',
-      Main: 'app/components/Main.jsx',
  //     applicationStyles: path.resolve(__dirname, 'app/styles/app.scss'),
  //     applicationStyles: 'app/styles/app.scss',
-      Navigation: 'app/components/Navigation.jsx',
-      Movies: 'app/components/Movies.jsx',
-      NewMovies: 'app/components/NewMovies.jsx',
-      NewMovie: 'app/components/NewMovie.jsx',
-      NewMovieTile: 'app/components/NewMovieTile.jsx',
-      MovieTile: 'app/components/MovieTile.jsx',
-      MoviesApi: 'app/api/moviesApi.jsx',
-      actions: 'app/actions/actions.jsx'
-  //    reducers: 'app/reducers/index.jsx',
-  //    store: 'app/store/index.jsx'
-    //  configureStore: 'app/store/configureStore.jsx'
     },
     extensions: ['*', '.js', '.jsx']
   },

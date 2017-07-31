@@ -1,7 +1,7 @@
 import React from "react";
 import { connect } from "react-redux";
 //import { ProgressBar } from "react-bootstrap";
-import Navigation from 'Navigation'
+import Navigation from 'app/components/Navigation'
 //import Menu from "./common/Menu";
 //import "../stylesheets/main.scss";
 
@@ -33,10 +33,8 @@ export class App extends React.Component {
           {children}
         </div>
         <div className="footer">
-          <img src="/media/logo.svg"/>
           <span>
-            Simple users app built with {' '}
-            <a href="http://redux-minimal.js.org/" target="_blank">redux-minimal</a>
+            My Movies List App
           </span>
         </div>
       </div>

@@ -4,7 +4,7 @@ import { Router, Route, Link, IndexRoute, hashHistory, browserHistory } from 're
 
 var {connect} = require('react-redux');
 //import { withRouter } from 'react-router-dom'
-var actions = require('actions');
+var actions = require('app/actions/');
 
 export class Navigation extends React.Component {
 
@@ -28,6 +28,26 @@ handleSubmitRuntime (e) {
     dispatch(actions.sortBy('runtime'));
   }
 
+handleSubmitToggleWatched (e) {
+    e.preventDefault();
+    
+    console.log("toggle watched");
+
+    var {dispatch} = this.props;
+
+    dispatch(actions.toggleWatched());
+  }
+
+handleSubmitToggleOrderBy (e) {
+    e.preventDefault();
+    
+    console.log("toggle orderby");
+
+    var {dispatch} = this.props;
+
+    dispatch(actions.toggleOrderBy());
+  }
+
   render() {
       return (
             <div>
@@ -48,9 +68,6 @@ handleSubmitRuntime (e) {
                 <Link className="nav-link"to="/new">New Movies</Link>
               </li>
               <li className="nav-item">
-                <Link className="nav-link"to="/topics">Topics</Link>
-              </li>
-              <li className="nav-item">
                 <Link className="nav-link"to="/main">Main</Link>
               </li>
 
@@ -69,7 +86,16 @@ handleSubmitRuntime (e) {
                         <button className="button btn-outline-success">Sort by Title</button>
                       </form>
                   </a>
-
+                  <a className="dropdown-item">
+                    <form onSubmit={this.handleSubmitToggleWatched.bind(this)}>
+                        <button className="button btn-outline-success">Toggle Watched</button>
+                      </form>
+                  </a>
+                  <a className="dropdown-item">
+                    <form onSubmit={this.handleSubmitToggleOrderBy.bind(this)}>
+                        <button className="button btn-outline-success">Toggle Ascending/Decending</button>
+                      </form>
+                  </a>
                   <a className="dropdown-item" href="#">Action</a>
                   <a className="dropdown-item" href="#">Another action</a>
                   <a className="dropdown-item" href="#">Something else here</a>
@@ -78,10 +104,6 @@ handleSubmitRuntime (e) {
             </ul>
           </div>
         </nav>
-              <button className="btn btn-outline-success" type="button" onClick={this.sortByTitle}>Sort by Title</button>
-              <button className="btn btn-outline-success" type="button" onClick={this.sortByRuntime}>Sort by Runtime</button>
-              <button className="btn btn-outline-success" type="button" onClick={this.toggleWatched}>Toggle Watched</button>
-
             </div>
           )
       }

@@ -1,108 +1,69 @@
 import React from 'react';
-var {connect} = require('react-redux');
-//import { withRouter } from 'react-router-dom'
 
-import MovieTile from 'MovieTile'
-//import MoviesApi from 'MoviesApi'
-//var actions = require('actions');
+import Dock from 'react-dock'
+import MovieTile from 'app/components/MovieTile'
+import MoviesControlPanel from 'app/components/MoviesControlPanel'
+import Glyphicon from 'react-bootstrap/lib/Glyphicon';
 
-
-// TODO: Add Move Rating pic instead of just the letters.  
-/*
-    function sortDuration(a, b) {
-      if (!a.duration || !b.duration || a.duration === b.duration)
-          return 0;
-
-      return a.duration - b.duration;
-    }
-
-    function sortTitle(a, b)  {
-
-  /*      if (!a.title) {
-          console.log("a.title empty", a.filename)
-          return 0;
-        }
-        if (!b.title) {
-          console.log("b.title empty", b.filename)
-          return 0;
-        }
-  */
- /*       if (!a.title || !b.title || a.title === b.title)
-          return 0;
-
-        return a.title.toLowerCase() < b.title.toLowerCase() ? -1 : 1;
-    }
-*/
+const styles = {
+  root: {
+    fontSize: '16px',
+    color: '#999',
+    height: '100vh'
+  },
+  main: {
+    width: '100%',
+    height: '150%',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    paddingTop: '30vh'
+  },
+  dockContent: {
+    width: '100%',
+    height: '100%',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'column'
+  },
+  remove: {
+    position: 'absolute',
+    zIndex: 1,
+    right: '10px',
+    top: '10px',
+    cursor: 'pointer'
+  }
+}
+const positions = ['left', 'top', 'right', 'bottom'];
+const dimModes = ['transparent', 'none', 'opaque'];
 
 export class Movies extends React.Component {
 
-/*
-    resize = () => {
-        console.log("Window size", window.innerWidth);
-        this.setState({ viewportWidth: window.innerWidth });
-    }
+  constructor(props) {
+    super(props);
 
+    this.state = {
+      positionIdx: 0,
+      dimModeIdx: 1,
+      isVisible: true,
+      fluid: true,
+      customAnimation: false,
+      slow: false,
+      size: 0.25
+    };
+  }
 
-    componentDidMount () {
-       // window.addEventListener('resize', this.resize);
-       console.log("Movies:componentDidMount");
-    }
-/*
-    componentWillUnmount() {
-        window.removeEventListener('resize', this.resize);
-    }
-*/
-  /*  sortByTitle = () => {
-      console.log("sortBy title!");
-
-      var {dispatch} = this.props;
-
-      dispatch(actions.sortBy('title'));
-    }
-    
-    sortByRuntime = () => {
-      console.log("sortBy runtime!");
-
-      var {dispatch} = this.props;
-
-      dispatch(actions.sortBy('runtime'));
-    }
-
-    toggleWatched = () => {
-      console.log("toggle watched!");
-
-      var {dispatch} = this.props;
-
-      dispatch(actions.toggleWatched());
-    }
-
-*/
     render() {
-        var {movies, filters} = this.props;
+        const duration = this.state.slow ? 2000 : 200;
+    const dur = duration / 1000;
+    const transitions = ['left', 'top', 'width', 'height']
+      .map(p => `${p} ${dur}s cubic-bezier(0, 1.5, 0.5, 1)`)
+      .join(',');
 
-//TODO: Look up redux shopping cart example
-// TODO: Use selectors:  reactjs / reselect
+        var {movies} = this.props;
 
         var renderMovies = () => {
-
-    //      var filteredList = movies;
-
-    /*      if (!filters.showWatched) {
-            filteredList = filteredList.filter( (movie) => {
-                return !movie.watched;
-              });
-          }
-
-        console.log("Movies componentDidMount.  filteredList Movie count", filteredList.length);
-        console.log("filters.showWatched", filters.showWatched);
-          var sortfunc = sortTitle;
-
-          if (filters.sortBy === 'runtime')
-            sortfunc = sortDuration;
-
-          var sorted = filteredList.sort( sortfunc );
- */
-//         var width = (this.state.viewportWidth - 20) / 3;
 
           return movies.map( (movie) => {
               return (
@@ -115,16 +76,20 @@ export class Movies extends React.Component {
             <div>
               <div className="container-fluid">
                 <div className="row">
-                  { renderMovies() }
-              </div>
+                    <div className='col-3'>
+                        <MoviesControlPanel/>
+                    </div>
+                    <div className='col-9'>
+                        <div className="row">
+                        { renderMovies() }
+                        </div>
+                    </div>
+                  
+                </div>
               </div>
             </div>
         );
     }
 }
 
-export default /*withRouter(*/connect(
-    (state) => {
-    return state;
-  }
-)(Movies)
+export default Movies

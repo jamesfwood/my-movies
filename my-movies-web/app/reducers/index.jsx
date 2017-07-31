@@ -2,10 +2,17 @@ import { combineReducers } from "redux";
 import { routerReducer } from "react-router-redux";
 import { reducer as formReducer } from "redux-form";
 
+const genres = [ 'Action', 'Adventure', 'Animation', 'Biography', 'Comedy', 'Crime',
+                'Documentary', 'Drama', 'Family', 'Fantasy', 'Film-Noir', 'History',
+                'Horror', 'Music', 'Musical', 'Mystery', 'Romance', 'Sci-Fi',
+                'Sport', 'Thriller', 'War', 'Western' ]
+
 var filterDefault = {
     sortBy: 'title',    // title, runtime, rating, releaseDate, Genre, imdbRating, tmdbRating, rottenTomatoesRating, budget, revenue
     orderBy: 'asc',     // asc, desc
-    showWatched: false
+    runtimeRange: [50, 500],
+    showWatched: false,
+    genres
 }
 
 // Filters:
@@ -20,10 +27,16 @@ var filterDefault = {
 // budget (min, max?)  Blockbuster movies, etc...
 // revenue (min)  Big hits
 // revenue / budget  Big suprise hits
+// actors
 
 
 var filtersReducer = (state = filterDefault, action) => {
     switch (action.type) {
+        case 'SET_RUNTIME_RANGE':
+            return {
+                ...state,
+                runtimeRange: action.runtimeRange
+            }
         case 'SORT_BY':
             return {
                 ...state,
@@ -38,6 +51,32 @@ var filtersReducer = (state = filterDefault, action) => {
             return {
                 ...state,
                 orderBy: state.orderBy === 'asc' ? 'desc' : 'asc'
+            }
+        case 'UPDATE_GENRES':
+            return {
+                ...state,
+                genres: action.genres
+            }
+        case 'UPDATE_GENRE':
+
+            var genres = state.genres.slice();
+
+            if (action.doAdd) {
+                if (genres.indexOf(action.genre) === -1) {
+                    genres.push(action.genre);
+                }
+            }
+            else {
+                // remove
+                var i = genres.indexOf(action.genre);
+                if (i !== -1) {
+                    genres.splice(i, 1);
+                }
+            }
+
+            return {
+                ...state,
+                genres
             }
         default:
             return state;
@@ -57,9 +96,8 @@ var moviesReducer = (state = [], action) => {
 
                 return {
                     ...movie,
-                    imdb_details: action.imdb_details,
-                    title: action.imdb_details.Title,
-                    poster: action.imdb_details.Poster
+                    imdb: action.imdb,
+                    tmdb: action.tmdb
                 }
             }
             else {

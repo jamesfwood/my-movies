@@ -4,6 +4,8 @@ var axios = require('axios');
 const MOVIES_URL = 'https://fqovjplf1b.execute-api.us-west-2.amazonaws.com/prod/movies';
 const MOVIE_URL = 'https://fqovjplf1b.execute-api.us-west-2.amazonaws.com/prod/movie';
 
+const IMDB_URL = 'http://localhost:3000/imdb?id=';
+
 module.exports = {
   getList: function () {
 //    var encodedLocation = encodeURIComponent(location);
@@ -38,14 +40,31 @@ module.exports = {
     });
   },
 
-  updateTheMovieDbIDs: function(filename, imdb_id, tmdb_id) {
+  getImdb: function (imdb_id) {
+    var requestUrl = IMDB_URL + imdb_id;
+
+    return axios.get(requestUrl).then(function (res) {
+
+//      if (res.data.cod && res.data.Items[1].tmdb_id) {
+  //      throw new Error(res.data.message);
+  //    } else {
+        console.log("Called MoviesApi:getImdb", res.data);
+
+        return res.data;
+  //    }
+    }, function (res) {
+      throw new Error(res.data.message);
+    });
+  },
+
+  updateTheMovieDbIDs: function(filename, imdb, tmdb) {
 
       var requestUrl = MOVIE_URL;
 
       var body = {
         filename,
-        imdb_id,
-        tmdb_id
+        imdb,
+        tmdb
       };
 
       return axios.put(requestUrl, body).then( res => {

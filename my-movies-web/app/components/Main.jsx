@@ -1,7 +1,7 @@
 import React from 'react'
 import { connect } from "react-redux";
 
-import Movies from 'Movies'
+import Movies from 'app/components/Movies'
 import SimpleForm from 'app/forms/SimpleForm';
 
 //const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
