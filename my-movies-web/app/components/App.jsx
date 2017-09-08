@@ -26,13 +26,20 @@ export class App extends React.Component {
     // render
     return (
       <div>
+        <header>
+          <nav className="nav">
+            <ul className="navbar">
+              <li><a>Home</a></li>
+              <li><a href="/movies">Watchlist</a></li>
+
+              </ul>
+            </nav>
+        </header>
         <div>
           <Navigation/>
-        </div>
-        <div>
           {children}
         </div>
-        <div className="footer">
+        <div>
           <span>
             My Movies List App
           </span>
