@@ -1,4 +1,4 @@
-import os
+import os, platform
 from MediaInfoDLL import MediaInfo, Stream
 import boto3
 from boto3.dynamodb.conditions import Key, Attr
@@ -8,7 +8,6 @@ import MovieFilename as movieFilename
 from botocore.exceptions import ClientError
 import xmltodict
 from time import sleep
-#from imdb import IMDb
 import requests
 from decimal import Decimal
 
@@ -36,44 +35,15 @@ def findFileNotWatchedInDb(items, str):
     return False
 
 
-#def getImdbDetails(imdb):
- #   details = { 'id': imdb.movieID, 'title': imdb['title'], 'year': imdb['year'], 'votes': imdb['votes'] }
-
-  #  try:
- #       mpaa = imdb['mpaa']
-  #      mpaa_arr = mpaa.split(" ", 2)
-
-  #      if len(mpaa_arr) > 2:
-  #          details['mpaa_rating'] = mpaa_arr[1]
-
-  #      details['mpaa'] = mpaa
- #   except:
- #       pass
-
- #   details['full_size_cover_url'] = imdb['full-size cover url']
- #   details['rating'] = Decimal(repr(imdb['rating']))
-
- #   details['genres'] = []
- #   for genre in imdb['genres']:
- #       details['genres'].append(genre)
-
- #   details['directors'] = []
- #   for director in imdb['director']:
- #       details['directors'].append(director['name'])
-
-#    details['writers'] = []
- #   for writer in imdb['writer']:
- #       details['writers'].append(writer['name'])
-
- #   return details
-
-
+# TODO: need to check empty lists (and nested lists)  if isinstance(v, list):
 def removeEmpty(d):
+    new_data = {}
     for k, v in d.items():
-        if v == '' or v == None:
-            del d[k]
-        elif isinstance(v, dict):
-            removeEmpty(v)
+        if isinstance(v, dict):
+            v = removeEmpty(v)
+        if not v in (u'', None, {}):
+            new_data[k] = v
+    return new_data
 
 
 def getImdbDetails(imdb_id):
@@ -86,9 +56,6 @@ def getImdbDetails(imdb_id):
         imdb['rating'] = Decimal(repr(imdb['rating']))
 
         return imdb
-        #imdb = json.loads(r.text)
-
-        #return imdb
     else:
         print('Error:  Could not get Imdb for id ' + imdb_id)
 
@@ -97,6 +64,17 @@ def getImdbDetails(imdb_id):
 #  To Be Takei
 #  Indie Game: The Movie
 # Failed to load IMDB data.  Their IMDB data is null.
+
+
+# TODO: Redo whole logic!!!!!  Always add filename to database,
+# and then update database with other data later to help discover errors
+# 1. Add filename
+# 2. Update mediaInfo
+# 3. Update duration
+# 3. Update tmdb
+# 4. Update imdb
+# 5. Update watched
+# 6. Update imdb score & votes
 
 def addToDb(table, filename, duration, mediaInfoXML, tmdbDetails):
     date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -116,13 +94,11 @@ def addToDb(table, filename, duration, mediaInfoXML, tmdbDetails):
             dictTmdb['popularity'] = Decimal(repr(dictTmdb['popularity']))
             dictTmdb['vote_average'] = Decimal(repr(dictTmdb['vote_average']))
 
-            removeEmpty(dictTmdb)
+            dictTmdb = removeEmpty(dictTmdb)
 
             del dictTmdb['production_countries']
             del dictTmdb['video']
-            del dictTmdb['spoken_languages']
             del dictTmdb['adult']
-            del dictTmdb['production_companies']
 
             table.put_item(
                 Item = {
@@ -334,6 +310,8 @@ def loadMovies(dir):
 
 if __name__ == '__main__':
     print("Starting my update tool!")
+
+    print(platform.python_version())
 
     dynamodb = boto3.resource('dynamodb')
 
